@@ -26,7 +26,7 @@ Drop the record key and it's schema:
 "transforms.jsonata.expr": "$sift($, function($v, $k) {$k != 'keySchema' and $k != 'key'})"
 ```
 
-For more examples, see this blog TBD.
+For more examples, see this (blog)[https://yokota.blog/2024/07/15/jsonata-the-missing-declarative-language-for-kafka-connect/].
 
 ### Configuration Reference
 
