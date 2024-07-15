@@ -25,7 +25,8 @@ public class JsonataTransformationConfig extends AbstractConfig {
       + "for the JSONata transformation to complete.";
 
   public static final String MAX_DEPTH_CONFIG = "max.depth";
-  static final String MAX_DEPTH_DOC = "The maximum depth of the JSONata transformation.";
+  static final String MAX_DEPTH_DOC = "The maximum number of recursive calls allowed "
+      + "for the JSONata transformation.";
 
   public static ConfigDef config() {
     return new ConfigDef()
@@ -39,7 +40,7 @@ public class JsonataTransformationConfig extends AbstractConfig {
         .define(
             TIMEOUT_MS_CONFIG,
             ConfigDef.Type.LONG,
-            10000,
+            5000,
             ConfigDef.Importance.MEDIUM,
             TIMEOUT_MS_DOC
         )

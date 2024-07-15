@@ -26,13 +26,21 @@ Drop the record key and it's schema:
 "transforms.jsonata.expr": "$sift($, function($v, $k) {$k != 'keySchema' and $k != 'key'})"
 ```
 
-For more examples, see TBD.
+For more examples, see this blog TBD.
 
 ### Configuration Reference
 
 #### `expr`
 
 The JSONata expression to apply to the Kafka Connect record.
+
+#### `timeout.ms`
+
+The maximum amount of time to wait (in ms) for the JSONata transformation to complete.  Default is 5000.
+
+#### `max.depth`
+
+The maximum number of recursive calls allowed for the JSONata transformation.  Default is 1000.
 
 ## License
 
