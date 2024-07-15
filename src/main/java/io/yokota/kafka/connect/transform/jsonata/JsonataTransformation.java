@@ -145,7 +145,9 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     if (record.value() != null) {
       node.set("value", objectToJsonNode(record.value()));
     }
-    node.put("timestamp", record.timestamp());
+    if (record.timestamp() != null) {
+      node.put("timestamp", record.timestamp());
+    }
     if (record.headers() != null) {
       node.set("headers", headersToJsonNode(record.headers()));
     }
@@ -156,13 +158,21 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     ObjectNode node = JsonNodeFactory.instance.objectNode();
     Schema.Type type = schema.type();
     node.put("type", type.name());
-    node.put("optional", schema.isOptional());
+    if (schema.isOptional()) {
+      node.put("optional", schema.isOptional());
+    }
     if (schema.defaultValue() != null) {
       node.set("defaultValue", objectToJsonNode(schema.defaultValue()));
     }
-    node.put("name", schema.name());
-    node.put("version", schema.version());
-    node.put("doc", schema.doc());
+    if (schema.name() != null) {
+      node.put("name", schema.name());
+    }
+    if (schema.version() != null) {
+      node.put("version", schema.version());
+    }
+    if (schema.doc() != null) {
+      node.put("doc", schema.doc());
+    }
     if (schema.parameters() != null) {
       node.set("parameters", mapToJsonNode(schema.parameters()));
     }
@@ -245,9 +255,9 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
   }
 
   private JsonNode headersToJsonNode(Headers headers) {
-    ObjectNode node = JsonNodeFactory.instance.objectNode();
+    ArrayNode node = JsonNodeFactory.instance.arrayNode();
     for (Header header : headers) {
-      node.set(header.key(), headerToJsonNode(header));
+      node.add(headerToJsonNode(header));
     }
     return node;
   }
@@ -392,14 +402,13 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
 
   private Headers jsonNodeToHeaders(JsonNode node) {
     Headers headers = new ConnectHeaders();
-    node.fields().forEachRemaining(entry -> {
-      JsonNode header = entry.getValue();
+    node.elements().forEachRemaining(item -> {
       Schema schema = null;
-      if (header.hasNonNull("schema")) {
-        schema = jsonNodeToSchema(header.get("schema"));
+      if (item.hasNonNull("schema")) {
+        schema = jsonNodeToSchema(item.get("schema"));
       }
-      Object value = jsonNodeToObject(schema, header.get("value"));
-      headers.add(entry.getKey(), value, schema);
+      Object value = jsonNodeToObject(schema, item.get("value"));
+      headers.add(item.get("key").asText(), value, schema);
     });
     return headers;
   }
@@ -577,8 +586,8 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     if (node.isArray()) {
       ArrayNode arrayNode = (ArrayNode) node;
       List<Object> list = new ArrayList<>(arrayNode.size());
-      arrayNode.fields().forEachRemaining(entry ->
-          list.add(getObject(schema.valueSchema(), entry.getValue())));
+      arrayNode.elements().forEachRemaining(item ->
+          list.add(getObject(schema.valueSchema(), item)));
       return list;
     }
     if (node.isObject()) {

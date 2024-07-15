@@ -5,15 +5,23 @@ import static com.github.jcustenborder.kafka.connect.utils.AssertStruct.assertSt
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.header.ConnectHeaders;
+import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.sink.SinkRecord;
+import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.Test;
 
 public class JsonataTransformationTest {
   SinkRecord record(Struct struct) {
-    return new SinkRecord("test", 1, null, null, struct.schema(), struct, 1234L);
+    Headers headers = new ConnectHeaders();
+    headers.add("key1", "value1", Schema.STRING_SCHEMA);
+    headers.add("key2", "value2", Schema.STRING_SCHEMA);
+    return new SinkRecord("test", 1, Schema.STRING_SCHEMA, "mykey", struct.schema(), struct, 1000L,
+        1234L, TimestampType.CREATE_TIME, headers);
   }
 
   private static ObjectMapper MAPPER = new ObjectMapper();

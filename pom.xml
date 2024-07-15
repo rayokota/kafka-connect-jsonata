@@ -1,43 +1,40 @@
 <?xml version="1.0"?>
-<project
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-        xmlns="http://maven.apache.org/POM/4.0.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>io.yokota</groupId>
-    <artifactId>kafka-connect-declarative</artifactId>
+    <artifactId>kafka-connect-jsonata</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <name>kafka-connect-declarative</name>
-    <url>https://github.com/rayokota/kafka-connect-declarative</url>
+    <packaging>pom</packaging>
+
+    <name>kafka-connect-jsonata</name>
+    <description>Kafka Connect JSONata Transform</description>
+    <url>https://github.com/rayokota/kafka-connect-jsonata</url>
     <licenses>
         <license>
             <name>Apache License 2.0</name>
-            <url>https:/github.com/rayokota/kafka-connect-declarative/LICENSE</url>
+            <url>https:/github.com/rayokota/kafka-connect-jsonata/LICENSE</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
     <developers>
         <developer>
-            <id>rayokota</id>
             <name>Robert Yokota</name>
             <url>https://github.com/rayokota</url>
-            <roles>
-                <role>Committer</role>
-            </roles>
         </developer>
     </developers>
+
     <scm>
-        <connection>scm:git:https://github.com/rayokota/kafka-connect-declarative.git
-        </connection>
-        <developerConnection>
-            scm:git:git@github.com:rayokota/kafka-connect-declarative.git
-        </developerConnection>
-        <url>https://github.com/rayokota/kafka-connect-declarative</url>
+        <connection>scm:git:https://github.com/rayokota/kafka-connect-jsonata.git</connection>
+        <developerConnection>scm:git:git@github.com:rayokota/kafka-connect-jsonata.git</developerConnection>
+        <url>https://github.com/rayokota/kafka-connect-jsonata</url>
     </scm>
+
     <issueManagement>
         <system>github</system>
-        <url>https://github.com/rayokota/kafka-connect-declarative/issues</url>
+        <url>https://github.com/rayokota/kafka-connect-jsonata/issues</url>
     </issueManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.kafka</groupId>
@@ -68,6 +65,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -79,10 +77,10 @@
                         <componentType>transform</componentType>
                     </componentTypes>
                     <tags>
-                        <tag>Common</tag>
+                        <tag>JSONata</tag>
                         <tag>Transformation</tag>
                     </tags>
-                    <title>Kafka Connect Declarative Plugins</title>
+                    <title>Kafka Connect JSONata Transform</title>
                     <supportUrl>${pom.issueManagement.url}</supportUrl>
                     <supportSummary>Support provided through community involvement.</supportSummary>
                 </configuration>
