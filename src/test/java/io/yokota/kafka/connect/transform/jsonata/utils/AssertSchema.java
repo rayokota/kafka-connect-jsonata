@@ -15,17 +15,18 @@
  */
 package io.yokota.kafka.connect.transform.jsonata.utils;
 
+import static io.yokota.kafka.connect.transform.jsonata.utils.AssertStruct.transformValue;
 import static io.yokota.kafka.connect.transform.jsonata.utils.GenericAssertions.assertMap;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.base.Strings;
 import java.nio.ByteBuffer;
 import java.util.List;
 import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.connect.data.Date;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 
@@ -49,46 +50,11 @@ public class AssertSchema {
     assertNotNull(actual, prefix + "actual schema should not be null.");
     assertEquals(expected.name(), actual.name(), prefix + "schema.name() should match.");
     assertEquals(expected.type(), actual.type(), prefix + "schema.type() should match.");
-    assertDefaultValueEquals(expected.defaultValue(), actual.defaultValue(), prefix + "schema.defaultValue() should match.");
+    assertDefaultValueEquals(expected, actual, prefix + "schema.defaultValue() should match.");
     assertEquals(expected.isOptional(), actual.isOptional(), prefix + "schema.isOptional() should match.");
     assertEquals(expected.doc(), actual.doc(), prefix + "schema.doc() should match.");
     assertEquals(expected.version(), actual.version(), prefix + "schema.version() should match.");
     assertMap(expected.parameters(), actual.parameters(), prefix + "schema.parameters() should match.");
-
-    if (null != expected.defaultValue()) {
-      assertNotNull(actual.defaultValue(), "actual.defaultValue() should not be null.");
-
-      Class<?> expectedType = null;
-
-      switch (expected.type()) {
-        case INT8:
-          expectedType = Byte.class;
-          break;
-        case INT16:
-          expectedType = Short.class;
-          break;
-        case INT32:
-          expectedType = Integer.class;
-          break;
-        case INT64:
-          expectedType = Long.class;
-          break;
-        case FLOAT32:
-          expectedType = Float.class;
-          break;
-        case FLOAT64:
-          expectedType = Double.class;
-          break;
-        default:
-          break;
-      }
-      if (null != expectedType) {
-        assertTrue(
-            actual.defaultValue().getClass().isAssignableFrom(expectedType),
-            String.format("actual.defaultValue() should be a %s", expectedType.getSimpleName())
-        );
-      }
-    }
 
     switch (expected.type()) {
       case ARRAY:
@@ -111,13 +77,9 @@ public class AssertSchema {
     }
   }
 
-  public static void assertDefaultValueEquals(Object expected, Object actual, String message) {
-    if (expected instanceof ByteBuffer) {
-      expected = Utils.toArray((ByteBuffer) expected);
-    }
-    if (actual instanceof ByteBuffer) {
-      actual = Utils.toArray((ByteBuffer) actual);
-    }
+  public static void assertDefaultValueEquals(Schema expectedSchema, Schema actualSchema, String message) {
+    Object expected = transformValue(expectedSchema, expectedSchema.defaultValue());
+    Object actual = transformValue(actualSchema, actualSchema.defaultValue());
     if (expected instanceof byte[] && actual instanceof byte[]) {
       assertArrayEquals((byte[]) expected, (byte[]) actual, message);
     } else {

@@ -141,7 +141,6 @@ public class JsonataTransformationTest {
     java.util.Date timeDef = Time.toLogical(Time.SCHEMA, timeDefVal);
     java.util.Date tsDef = Timestamp.toLogical(Timestamp.SCHEMA, tsDefVal);
     BigDecimal decimalDef = new BigDecimal(BigInteger.valueOf(314159L), 5);
-    byte[] decimalDefVal = decimalDef.unscaledValue().toByteArray();
 
     Schema schema = SchemaBuilder.struct()
         .field("int8", SchemaBuilder.int8().defaultValue((byte) 2).doc("int8 field").build())
@@ -155,16 +154,9 @@ public class JsonataTransformationTest {
         .field("bytes", SchemaBuilder.bytes().defaultValue(ByteBuffer.wrap("foo".getBytes())).doc("bytes field").build())
         .field("array", SchemaBuilder.array(Schema.STRING_SCHEMA).defaultValue(Arrays.asList("a", "b", "c")).build())
         .field("map", SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.INT32_SCHEMA).defaultValue(Collections.singletonMap("field", 1)).build())
-        /*
         .field("date", Date.builder().defaultValue(dateDef).doc("date field").build())
         .field("time", Time.builder().defaultValue(timeDef).doc("time field").build())
-         */
-
-        //.field("date", Date.builder().doc("date field").build())
-        //.field("time", Time.builder().doc("time field").build())
-
-        //.field("ts", Timestamp.builder().defaultValue(tsDef).doc("ts field").build())
-        .field("ts", Timestamp.builder().doc("ts field").build())
+        .field("ts", Timestamp.builder().defaultValue(tsDef).doc("ts field").build())
         .field("decimal", Decimal.builder(5).defaultValue(decimalDef).doc("decimal field").build())
         .build();
     // leave the struct empty so that only defaults are used
@@ -180,8 +172,8 @@ public class JsonataTransformationTest {
         .put("bytes", ByteBuffer.wrap("foo".getBytes()))
         .put("array", Arrays.asList("a", "b", "c"))
         .put("map", Collections.singletonMap("field", 1))
-        //.put("date", dateDef)
-        //.put("time", timeDef)
+        .put("date", dateDef)
+        .put("time", timeDef)
         .put("ts", tsDef)
         .put("decimal", decimalDef);
     SinkRecord record = record(struct);

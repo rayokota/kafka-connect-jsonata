@@ -25,12 +25,17 @@ import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.connect.data.Date;
 import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.data.Time;
 import org.apache.kafka.connect.data.Timestamp;
@@ -42,9 +47,7 @@ public class AssertStruct {
 
   static <T> T castAndVerify(Class<T> cls, Struct struct, Field field, boolean expected) {
     Object value = struct.get(field.name());
-    if (cls == byte[].class && value instanceof ByteBuffer) {
-      value = Utils.toArray((ByteBuffer) value);
-    }
+    value = transformValue(field.schema(), value);
 
     final String prefix = String.format(
         "%s('%s') ",
@@ -74,6 +77,21 @@ public class AssertStruct {
     return cls.cast(value);
   }
 
+  public static Object transformValue(Schema schema, Object value) {
+    if (value instanceof ByteBuffer) {
+      value = Utils.toArray((ByteBuffer) value);
+    }
+    if (value instanceof java.util.Date) {
+      if (Date.LOGICAL_NAME.equals(schema.name())) {
+        value = ((java.util.Date) value).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+      } else if (Time.LOGICAL_NAME.equals(schema.name())) {
+        value = LocalDateTime.ofInstant(
+            ((java.util.Date) value).toInstant(), ZoneId.systemDefault()).toLocalTime();
+      }
+    }
+    return value;
+  }
+
   public static void assertStruct(final Struct expected, final Struct actual, String message) {
     String prefix = Strings.isNullOrEmpty(message) ? "" : message + ": ";
 
@@ -92,11 +110,17 @@ public class AssertStruct {
         final BigDecimal expectedDecimal = castAndVerify(BigDecimal.class, expected, expectedField, true);
         final BigDecimal actualDecimal = castAndVerify(BigDecimal.class, actual, expectedField, false);
         assertEquals(expectedDecimal, actualDecimal, prefix + expectedField.name() + " does not match.");
-      } else if (Timestamp.LOGICAL_NAME.equals(expectedField.schema().name())
-          || Date.LOGICAL_NAME.equals(expectedField.schema().name())
-          || Time.LOGICAL_NAME.equals(expectedField.schema().name())) {
+      } else if (Timestamp.LOGICAL_NAME.equals(expectedField.schema().name())) {
         final java.util.Date expectedDate = castAndVerify(java.util.Date.class, expected, expectedField, true);
         final java.util.Date actualDate = castAndVerify(java.util.Date.class, actual, expectedField, false);
+        assertEquals(expectedDate, actualDate, prefix + expectedField.name() + " does not match.");
+      } else if (Date.LOGICAL_NAME.equals(expectedField.schema().name())) {
+        final LocalDate expectedDate = castAndVerify(LocalDate.class, expected, expectedField, true);
+        final LocalDate actualDate = castAndVerify(LocalDate.class, actual, expectedField, false);
+        assertEquals(expectedDate, actualDate, prefix + expectedField.name() + " does not match.");
+      } else if (Time.LOGICAL_NAME.equals(expectedField.schema().name())) {
+        final LocalTime expectedDate = castAndVerify(LocalTime.class, expected, expectedField, true);
+        final LocalTime actualDate = castAndVerify(LocalTime.class, actual, expectedField, false);
         assertEquals(expectedDate, actualDate, prefix + expectedField.name() + " does not match.");
       } else {
         switch (expectedField.schema().type()) {
