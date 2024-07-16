@@ -313,7 +313,10 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     if (node.hasNonNull("value")) {
       value = jsonNodeToObject(valueSchema, node.get("value"));
     }
-    long timestamp = node.get("timestamp").asLong();
+    Long timestamp = null;
+    if (node.hasNonNull("timestamp")) {
+      timestamp = node.get("timestamp").asLong();
+    }
     Headers headers = null;
     if (node.hasNonNull("headers")) {
       headers = jsonNodeToHeaders(node.get("headers"));

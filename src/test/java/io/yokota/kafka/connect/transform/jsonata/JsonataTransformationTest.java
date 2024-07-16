@@ -118,18 +118,23 @@ public class JsonataTransformationTest {
         ImmutableMap.of(JsonataTransformationConfig.EXPR_CONFIG, expr)
     );
     SinkRecord actual = transform.apply(record);
-
-
-    Schema expectedSchema = SchemaBuilder.struct()
-        .field("first", Schema.STRING_SCHEMA)
-        .field("last", Schema.STRING_SCHEMA)
-        .build();
-    Struct expectedStruct = new Struct(expectedSchema)
-        .put("first", "test")
-        .put("last", "user");
-    SinkRecord expectedRecord = record(expectedStruct);
-
     assertNull(actual);
+  }
+
+  @Test
+  public void noopEmpty() {
+    SinkRecord record = new SinkRecord(null, 1, null, null, null, null, 1000L, null, null, null);
+
+    String expr = "$";
+    JsonataTransformation<SinkRecord> transform = new JsonataTransformation<>();
+    transform.configure(
+        ImmutableMap.of(JsonataTransformationConfig.EXPR_CONFIG, expr)
+    );
+    SinkRecord actual = transform.apply(record);
+    assertNull(actual.key());
+    assertNull(actual.keySchema());
+    assertNull(actual.value());
+    assertNull(actual.valueSchema());
   }
 
   @Test
