@@ -19,7 +19,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -428,34 +427,52 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     if (node.isNull()) {
       return null;
     }
-    Object object = getObject(schema, node);
-    switch (schema.type()) {
-      case INT8:
-        return Values.convertToByte(schema, object);
-      case INT16:
-        return Values.convertToShort(schema, object);
-      case INT32:
-        return convertMaybeLogicalInteger(schema, object);
-      case INT64:
-        return convertMaybeLogicalLong(schema, object);
-      case FLOAT32:
-        return Values.convertToFloat(schema, object);
-      case FLOAT64:
-        return Values.convertToDouble(schema, object);
-      case BOOLEAN:
-        return Values.convertToBoolean(schema, object);
-      case STRING:
-        return Values.convertToString(schema, object);
-      case BYTES:
-        return convertMaybeLogicalBytes(schema, object);
-      case ARRAY:
-        return Values.convertToList(schema, object);
-      case MAP:
-        return Values.convertToMap(schema, object);
-      case STRUCT:
-        return Values.convertToStruct(schema, object);
-      default:
-        throw new DataException("Unsupported type " + schema.type());
+    try {
+      switch (schema.type()) {
+        case INT8:
+          return node.numberValue().byteValue();
+        case INT16:
+          return node.shortValue();
+        case INT32:
+          return convertMaybeLogicalInteger(schema,
+              node.isNumber() ? node.intValue() : node.textValue());
+        case INT64:
+          return convertMaybeLogicalLong(schema,
+              node.isNumber() ? node.longValue() : node.textValue());
+        case FLOAT32:
+          return node.floatValue();
+        case FLOAT64:
+          return node.doubleValue();
+        case BOOLEAN:
+          return node.booleanValue();
+        case STRING:
+          return node.textValue();
+        case BYTES:
+          return convertMaybeLogicalBytes(schema,
+              node.isBinary() ? node.binaryValue() :
+                  (node.isNumber() ? node.numberValue() : node.textValue()));
+        case ARRAY:
+          ArrayNode arrayNode = (ArrayNode) node;
+          List<Object> list = new ArrayList<>(arrayNode.size());
+          arrayNode.elements().forEachRemaining(item ->
+              list.add(jsonNodeToObject(schema.valueSchema(), item)));
+          return list;
+        case MAP:
+          Map<String, Object> map = new LinkedHashMap<>();
+          node.fields().forEachRemaining(entry ->
+              map.put(entry.getKey(), jsonNodeToObject(schema.valueSchema(), entry.getValue())));
+          return map;
+        case STRUCT:
+          ObjectNode objectNode = (ObjectNode) node;
+          Struct struct = new Struct(schema);
+          schema.fields().forEach(field ->
+              struct.put(field, jsonNodeToObject(field.schema(), objectNode.get(field.name()))));
+          return struct;
+        default:
+          throw new DataException("Unsupported type " + schema.type());
+      }
+    } catch (IOException e) {
+      throw new DataException("Could not convert node to object", e);
     }
   }
 
@@ -578,75 +595,5 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     }
     throw new DataException(
         "Unable to convert " + value + " (" + value.getClass() + ") to a number");
-  }
-
-  private Object getObject(Schema schema, JsonNode node) {
-    if (node.isNull()) {
-      return null;
-    }
-    if (org.apache.kafka.connect.data.Date.LOGICAL_NAME.equals(schema.name())) {
-      return convertToDate(schema, node.textValue());
-    }
-    if (Time.LOGICAL_NAME.equals(schema.name())) {
-      return convertToTime(schema, node.textValue());
-    }
-    if (Timestamp.LOGICAL_NAME.equals(schema.name())) {
-      return convertToTimestamp(schema, node.textValue());
-    }
-    if (node.isNumber()) {
-      switch (schema.type()) {
-        case INT8:
-          return node.numberValue().byteValue();
-        case INT16:
-          return node.shortValue();
-        case INT32:
-          return node.intValue();
-        case INT64:
-          return node.longValue();
-        case FLOAT32:
-          return node.floatValue();
-        case FLOAT64:
-          return node.doubleValue();
-        default:
-          return node.numberValue();
-      }
-    }
-    if (node.isBoolean()) {
-      return node.booleanValue();
-    }
-    if (node.isBinary()) {
-      try {
-        byte[] binaryValue = node.binaryValue();
-        if (Decimal.LOGICAL_NAME.equals(schema.name())) {
-          return convertToDecimal(schema, binaryValue);
-        }
-        return binaryValue;
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
-    if (node.isArray()) {
-      ArrayNode arrayNode = (ArrayNode) node;
-      List<Object> list = new ArrayList<>(arrayNode.size());
-      arrayNode.elements().forEachRemaining(item ->
-          list.add(getObject(schema.valueSchema(), item)));
-      return list;
-    }
-    if (node.isObject()) {
-      switch (schema.type()) {
-        case MAP:
-          Map<String, Object> map = new LinkedHashMap<>();
-          node.fields().forEachRemaining(entry ->
-              map.put(entry.getKey(), getObject(schema.valueSchema(), entry.getValue())));
-          return map;
-        case STRUCT:
-          ObjectNode objectNode = (ObjectNode) node;
-          Struct struct = new Struct(schema);
-          schema.fields().forEach(field ->
-              struct.put(field, getObject(field.schema(), objectNode.get(field.name()))));
-          return struct;
-      }
-    }
-    return node.textValue();
   }
 }
