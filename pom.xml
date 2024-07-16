@@ -53,12 +53,6 @@
             <version>33.2.0-jre</version>
         </dependency>
         <dependency>
-            <groupId>com.github.jcustenborder.kafka.connect</groupId>
-            <artifactId>connect-utils-testing</artifactId>
-            <version>0.7.177</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.10.2</version>

@@ -10,7 +10,6 @@ import com.api.jsonata4java.expressions.Expressions;
 import com.api.jsonata4java.expressions.ParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NullNode;
@@ -24,6 +23,7 @@ import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -206,6 +206,13 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
       List<?> list = (List<?>) value;
       ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode(list.size());
       list.forEach(v -> arrayNode.add(objectToJsonNode(v)));
+      return arrayNode;
+    } else if (value instanceof Map) {
+      Map<?, ?> map = (Map<?, ?>) value;
+      ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+      map.entrySet().forEach(entry ->
+          objectNode.put(entry.getKey().toString(), objectToJsonNode(entry.getValue())));
+      return objectNode;
     } else if (value instanceof Boolean) {
       return JsonNodeFactory.instance.booleanNode((Boolean) value);
     } else if (value instanceof BigDecimal) {
@@ -227,10 +234,11 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     } else if (value instanceof byte[]) {
       return JsonNodeFactory.instance.binaryNode((byte[]) value);
     } else if (value instanceof ByteBuffer) {
-      return JsonNodeFactory.instance.binaryNode(getBytesFromByteBuffer((ByteBuffer) value));
+      return JsonNodeFactory.instance.binaryNode(Utils.toArray((ByteBuffer) value));
     } else if (value instanceof java.util.Date) {
       java.util.Date date = (java.util.Date) value;
-      String formatted = Values.dateFormatFor(date).format(date);
+      DateFormat dateFormat = Values.dateFormatFor(date);
+      String formatted = dateFormat.format(date);
       return JsonNodeFactory.instance.textNode(formatted);
     } else if (value instanceof Struct) {
       Struct struct = (Struct) value;
@@ -243,17 +251,6 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
       return JsonNodeFactory.instance.textNode((String) value);
     }
     throw new DataException("Unsupported type " + value.getClass().getName());
-  }
-
-  private byte[] getBytesFromByteBuffer(ByteBuffer byteBuffer) {
-    if (byteBuffer == null) {
-      return null;
-    }
-
-    byteBuffer.rewind();
-    byte[] bytes = new byte[byteBuffer.remaining()];
-    byteBuffer.get(bytes);
-    return bytes;
   }
 
   private JsonNode headersToJsonNode(Headers headers) {
@@ -587,15 +584,43 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     if (node.isNull()) {
       return null;
     }
+    if (org.apache.kafka.connect.data.Date.LOGICAL_NAME.equals(schema.name())) {
+      return convertToDate(schema, node.textValue());
+    }
+    if (Time.LOGICAL_NAME.equals(schema.name())) {
+      return convertToTime(schema, node.textValue());
+    }
+    if (Timestamp.LOGICAL_NAME.equals(schema.name())) {
+      return convertToTimestamp(schema, node.textValue());
+    }
     if (node.isNumber()) {
-      return node.numberValue();
+      switch (schema.type()) {
+        case INT8:
+          return node.numberValue().byteValue();
+        case INT16:
+          return node.shortValue();
+        case INT32:
+          return node.intValue();
+        case INT64:
+          return node.longValue();
+        case FLOAT32:
+          return node.floatValue();
+        case FLOAT64:
+          return node.doubleValue();
+        default:
+          return node.numberValue();
+      }
     }
     if (node.isBoolean()) {
       return node.booleanValue();
     }
     if (node.isBinary()) {
       try {
-        return node.binaryValue();
+        byte[] binaryValue = node.binaryValue();
+        if (Decimal.LOGICAL_NAME.equals(schema.name())) {
+          return convertToDecimal(schema, binaryValue);
+        }
+        return binaryValue;
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
