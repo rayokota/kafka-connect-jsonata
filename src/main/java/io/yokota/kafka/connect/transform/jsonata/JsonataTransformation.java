@@ -108,12 +108,14 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
       }
     }
 
+    /*
     try {
       ObjectMapper mapper = new ObjectMapper();
       String pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObj);
       System.out.println(pretty);
     } catch (Exception e) {
     }
+    */
 
     return jsonNodeToRecord(record, result);
   }
@@ -294,6 +296,9 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
 
   @SuppressWarnings("unchecked")
   private R jsonNodeToRecord(R originalRecord, JsonNode node) {
+    if (node.isNull()) {
+      return null;
+    }
     String topic = node.get("topic").asText();
     int kafkaPartition = node.get("kafkaPartition").asInt();
     Schema keySchema = null;
@@ -349,6 +354,9 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
   }
 
   private Schema jsonNodeToSchema(JsonNode node) {
+    if (node.isNull()) {
+      return null;
+    }
     SchemaBuilder builder;
     if (node.hasNonNull("valueSchema")) {
       Schema valueSchema = jsonNodeToSchema(node.get("valueSchema"));
@@ -393,6 +401,9 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
   }
 
   private Field jsonNodeToField(JsonNode node) {
+    if (node.isNull()) {
+      return null;
+    }
     return new Field(
         node.get("name").asText(),
         node.get("index").asInt(),
@@ -401,6 +412,9 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
   }
 
   private Headers jsonNodeToHeaders(JsonNode node) {
+    if (node.isNull()) {
+      return null;
+    }
     Headers headers = new ConnectHeaders();
     node.elements().forEachRemaining(item -> {
       Schema schema = null;
@@ -414,6 +428,9 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
   }
 
   private Object jsonNodeToObject(Schema schema, JsonNode node) {
+    if (node.isNull()) {
+      return null;
+    }
     Object object = getObject(schema, node);
     switch (schema.type()) {
       case INT8:
