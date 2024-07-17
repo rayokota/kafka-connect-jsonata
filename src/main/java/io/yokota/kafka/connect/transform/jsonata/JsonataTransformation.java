@@ -442,6 +442,9 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     if (node.isNull()) {
       return null;
     }
+    if (schema == null) {
+      return jsonNodeToObjectWithoutSchema(node);
+    }
     try {
       switch (schema.type()) {
         case INT8:
@@ -486,6 +489,39 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
         default:
           throw new DataException("Unsupported type " + schema.type());
       }
+    } catch (IOException e) {
+      throw new DataException("Could not convert node to object", e);
+    }
+  }
+
+  private Object jsonNodeToObjectWithoutSchema(JsonNode node) {
+    try {
+      if (node.isNull()) {
+        return null;
+      }
+      if (node.isNumber()) {
+        return node.numberValue();
+      }
+      if (node.isBoolean()) {
+        return node.booleanValue();
+      }
+      if (node.isBinary()) {
+        return node.binaryValue();
+      }
+      if (node.isArray()) {
+        ArrayNode arrayNode = (ArrayNode) node;
+        List<Object> list = new ArrayList<>(arrayNode.size());
+        arrayNode.elements().forEachRemaining(item ->
+            list.add(jsonNodeToObjectWithoutSchema(item)));
+        return list;
+      }
+      if (node.isObject()) {
+          Map<String, Object> map = new LinkedHashMap<>();
+          node.fields().forEachRemaining(entry ->
+              map.put(entry.getKey(), jsonNodeToObjectWithoutSchema(entry.getValue())));
+          return map;
+      }
+      return node.textValue();
     } catch (IOException e) {
       throw new DataException("Could not convert node to object", e);
     }

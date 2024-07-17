@@ -2,6 +2,7 @@ package io.yokota.kafka.connect.transform.jsonata;
 
 import static io.yokota.kafka.connect.transform.jsonata.utils.AssertSchema.assertSchema;
 import static io.yokota.kafka.connect.transform.jsonata.utils.AssertStruct.assertStruct;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.google.common.collect.ImmutableMap;
@@ -28,11 +29,11 @@ public class JsonataTransformationTest {
     return record(struct, struct.schema());
   }
 
-  SinkRecord record(Struct struct, Schema schema) {
+  SinkRecord record(Object value, Schema schema) {
     Headers headers = new ConnectHeaders();
     headers.add("key1", "value1", Schema.STRING_SCHEMA);
     headers.add("key2", "value2", Schema.STRING_SCHEMA);
-    return new SinkRecord("test", 1, Schema.STRING_SCHEMA, "mykey", schema, struct, 1000L,
+    return new SinkRecord("test", 1, Schema.STRING_SCHEMA, "mykey", schema, value, 1000L,
         1234L, TimestampType.CREATE_TIME, headers);
   }
 
@@ -122,6 +123,19 @@ public class JsonataTransformationTest {
     );
     SinkRecord actual = transform.apply(record);
     assertNull(actual);
+  }
+
+  @Test
+  public void valueWithoutSchema() {
+    SinkRecord record = record("hi", null);
+
+    String expr = "$";
+    JsonataTransformation<SinkRecord> transform = new JsonataTransformation<>();
+    transform.configure(
+        ImmutableMap.of(JsonataTransformationConfig.EXPR_CONFIG, expr)
+    );
+    SinkRecord actual = transform.apply(record);
+    assertEquals(actual.value(), "hi");
   }
 
   @Test
