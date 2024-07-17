@@ -295,8 +295,14 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     if (node.isNull()) {
       return null;
     }
-    String topic = node.get("topic").asText();
-    int kafkaPartition = node.get("kafkaPartition").asInt();
+    String topic = null;
+    if (node.hasNonNull("topic")) {
+      topic = node.get("topic").asText();
+    }
+    int kafkaPartition = -1;
+    if (node.hasNonNull("kafkaPartition")) {
+      kafkaPartition = node.get("kafkaPartition").asInt();
+    }
     Schema keySchema = null;
     if (node.hasNonNull("keySchema")) {
       keySchema = jsonNodeToSchema(node.get("keySchema"));
@@ -365,9 +371,11 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
       } else {
         builder = SchemaBuilder.array(valueSchema);
       }
-    } else {
+    } else if (node.hasNonNull("type")) {
       Schema.Type type = Schema.Type.valueOf(node.get("type").asText());
       builder = SchemaBuilder.type(type);
+    } else {
+      throw new DataException("Schema node must have 'type' or 'valueSchema'");
     }
     if (node.hasNonNull("optional")) {
       if (node.get("optional").asBoolean()) {
@@ -403,11 +411,15 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     if (node.isNull()) {
       return null;
     }
-    return new Field(
-        node.get("name").asText(),
-        node.get("index").asInt(),
-        node.hasNonNull("schema") ? jsonNodeToSchema(node.get("schema")) : null
-    );
+    if (node.hasNonNull("name") && node.hasNonNull("index")) {
+      return new Field(
+          node.get("name").asText(),
+          node.get("index").asInt(),
+          node.hasNonNull("schema") ? jsonNodeToSchema(node.get("schema")) : null
+      );
+    } else {
+      throw new DataException("Field node must have 'name' and 'index'");
+    }
   }
 
   private Headers jsonNodeToHeaders(JsonNode node) {
