@@ -49,9 +49,10 @@ public class JsonataTransformationTest {
         .put("email", "none@none.com");
     SinkRecord record = record(struct);
 
+    String expr = "$";
     JsonataTransformation<SinkRecord> transform = new JsonataTransformation<>();
     transform.configure(
-        ImmutableMap.of(JsonataTransformationConfig.EXPR_CONFIG, "")
+        ImmutableMap.of(JsonataTransformationConfig.EXPR_CONFIG, expr)
     );
     SinkRecord actual = transform.apply(record);
     assertStruct((Struct) record.value(), (Struct) actual.value());
@@ -64,6 +65,7 @@ public class JsonataTransformationTest {
         .field("first", Schema.STRING_SCHEMA)
         .field("last", Schema.STRING_SCHEMA)
         .field("email", Schema.STRING_SCHEMA)
+        .optional()
         .build();
     Struct struct = new Struct(schema)
         .put("first", "test")
@@ -93,6 +95,7 @@ public class JsonataTransformationTest {
     Schema expectedSchema = SchemaBuilder.struct()
         .field("first", Schema.STRING_SCHEMA)
         .field("last", Schema.STRING_SCHEMA)
+        .optional()
         .build();
     Struct expectedStruct = new Struct(expectedSchema)
         .put("first", "test")
@@ -183,9 +186,10 @@ public class JsonataTransformationTest {
         .put("decimal", decimalDef);
     SinkRecord record = record(struct);
 
+    String expr = "$";
     JsonataTransformation<SinkRecord> transform = new JsonataTransformation<>();
     transform.configure(
-        ImmutableMap.of(JsonataTransformationConfig.EXPR_CONFIG, "")
+        ImmutableMap.of(JsonataTransformationConfig.EXPR_CONFIG, expr)
     );
     SinkRecord actual = transform.apply(record);
     assertStruct((Struct) record.value(), (Struct) actual.value());
