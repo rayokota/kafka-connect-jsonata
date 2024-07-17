@@ -65,19 +65,29 @@
             <plugin>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-connect-maven-plugin</artifactId>
-                <configuration>
-                    <confluentControlCenterIntegration>true</confluentControlCenterIntegration>
-                    <componentTypes>
-                        <componentType>transform</componentType>
-                    </componentTypes>
-                    <tags>
-                        <tag>JSONata</tag>
-                        <tag>Transformation</tag>
-                    </tags>
-                    <title>Kafka Connect JSONata Transform</title>
-                    <supportUrl>${pom.issueManagement.url}</supportUrl>
-                    <supportSummary>Support provided through community involvement.</supportSummary>
-                </configuration>
+                <version>0.12.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>kafka-connect</goal>
+                        </goals>
+                        <configuration>
+                            <componentTypes>
+                                <componentType>transform</componentType>
+                            </componentTypes>
+                            <ownerUsername>rayokota</ownerUsername>
+                            <title>Kafka Connect JSONata Transform</title>
+                            <sourceUrl>https://github.com/rayokota/kafka-connect-jsonata</sourceUrl>
+                            <supportUrl>${pom.issueManagement.url}</supportUrl>
+                            <supportSummary>Support provided through community involvement.</supportSummary>
+                            <confluentControlCenterIntegration>true</confluentControlCenterIntegration>
+                            <tags>
+                                <tag>JSONata</tag>
+                                <tag>Transformation</tag>
+                            </tags>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
