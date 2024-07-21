@@ -23,10 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.google.common.base.Strings;
-import java.nio.ByteBuffer;
 import java.util.List;
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.connect.data.Date;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 

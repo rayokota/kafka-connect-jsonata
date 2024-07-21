@@ -210,7 +210,7 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
       Map<?, ?> map = (Map<?, ?>) value;
       ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
       map.entrySet().forEach(entry ->
-          objectNode.put(entry.getKey().toString(), objectToJsonNode(entry.getValue())));
+          objectNode.set(entry.getKey().toString(), objectToJsonNode(entry.getValue())));
       return objectNode;
     } else if (value instanceof Boolean) {
       return JsonNodeFactory.instance.booleanNode((Boolean) value);
