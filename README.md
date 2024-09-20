@@ -5,7 +5,7 @@ to transform the Kafka Connect record.
 
 ## Installation
 
-(TBD) You can install or download the latest version of the plugin from
+You can install or download the latest version of the plugin from
 [Confluent Hub][confluent-hub].
 
 ### Configuration Examples
