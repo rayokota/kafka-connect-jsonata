@@ -4,11 +4,11 @@
 
     <groupId>io.yokota</groupId>
     <artifactId>kafka-connect-jsonata</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
 
     <name>kafka-connect-jsonata</name>
-    <description>Kafka Connect JSONata Transform</description>
+    <description>Kafka Connect JSONata Transformation</description>
     <url>https://github.com/rayokota/kafka-connect-jsonata</url>
     <licenses>
         <license>
@@ -76,7 +76,7 @@
                                 <componentType>transform</componentType>
                             </componentTypes>
                             <ownerUsername>rayokota</ownerUsername>
-                            <title>Kafka Connect JSONata Transform</title>
+                            <title>Kafka Connect JSONata Transformation</title>
                             <sourceUrl>https://github.com/rayokota/kafka-connect-jsonata</sourceUrl>
                             <supportUrl>${pom.issueManagement.url}</supportUrl>
                             <supportSummary>Support provided through community involvement.</supportSummary>

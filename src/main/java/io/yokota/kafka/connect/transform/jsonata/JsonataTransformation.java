@@ -299,7 +299,7 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
     if (node.hasNonNull("topic")) {
       topic = node.get("topic").asText();
     }
-    int kafkaPartition = -1;
+    Integer kafkaPartition = null;
     if (node.hasNonNull("kafkaPartition")) {
       kafkaPartition = node.get("kafkaPartition").asInt();
     }
@@ -345,7 +345,7 @@ public class JsonataTransformation<R extends ConnectRecord<R>> implements Transf
       SinkRecord sink = (SinkRecord) originalRecord;
       return (R) new SinkRecord(
           topic,
-          kafkaPartition,
+          kafkaPartition != null ? kafkaPartition : -1,
           keySchema,
           key,
           valueSchema,
