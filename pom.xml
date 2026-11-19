@@ -4,7 +4,7 @@
 
     <groupId>io.yokota</groupId>
     <artifactId>kafka-connect-jsonata</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
     <packaging>jar</packaging>
 
     <name>kafka-connect-jsonata</name>
@@ -35,6 +35,26 @@
         <url>https://github.com/rayokota/kafka-connect-jsonata/issues</url>
     </issueManagement>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- Override the Jackson versions pulled in transitively by JSONata4Java -->
+            <dependency>
+                <groupId>tools.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>3.3.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.23.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.kafka</groupId>
@@ -50,7 +70,7 @@
          <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.22.3</version>
+            <version>2.23.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
